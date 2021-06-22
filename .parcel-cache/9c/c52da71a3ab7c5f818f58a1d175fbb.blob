@@ -1,0 +1,20 @@
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+//--> Importing Parent Class
+var _view = require("./view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+//--> Importing Assets
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class ResultsView extends _viewDefault.default {
+    _parentEl = document.querySelector('.results');
+    _errorMessage = 'No recipes found for your query. Try another one.';
+    _message = '';
+    _generateMarkup() {
+        const id = window.location.hash.slice(1);
+        return this._data.map((res)=>{
+            return `\n          <li class="preview">\n            <a class="preview__link ${id === res.id ? 'preview__link--active' : ''}" href="#${res.id}">\n              <figure class="preview__fig">\n                <img src="${res.image}" alt="${res.title}" />\n              </figure>\n\n              <div class="preview__data">\n                <h4 class="preview__title">${res.title} ...</h4>\n                <p class="preview__publisher">${res.publisher}</p>\n              </div>\n              \n              <div class="preview__user-generated">\n                <svg>\n                  <use href="${_iconsSvgDefault.default}#icon-user"></use>\n                </svg>\n              </div>\n            </a>\n          </li>\n      `;
+        }).join('');
+    }
+}
+exports.default = new ResultsView();

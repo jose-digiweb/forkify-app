@@ -1,0 +1,33 @@
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+//--> Importing Parent Class
+var _view = require("./view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
+//--> Importing Assets
+var _iconsSvg = require("url:../../img/icons.svg");
+var _iconsSvgDefault = parcelHelpers.interopDefault(_iconsSvg);
+class PaginationView extends _viewDefault.default {
+    _parentEl = document.querySelector('.pagination');
+    addHandlerClick(handler) {
+        this._parentEl.addEventListener('click', function(e) {
+            e.preventDefault();
+            const btn = e.target.closest('.btn--inline');
+            if (!btn) return;
+            const goToPage = +btn.dataset.goto;
+            console.log(goToPage);
+            handler(goToPage);
+        });
+    }
+    _generateMarkup() {
+        const pageNum = Math.ceil(this._data.results.length / this._data.resultsPerPage);
+        const currentPage = this._data.resultsPage;
+        //--> Next Page
+        if (currentPage === 1 && pageNum > currentPage) return `<button data-goto='${currentPage + 1}' class="btn--inline pagination__btn--next">\n            <span>Page ${currentPage + 1}</span>\n            <svg class="search__icon">\n              <use href="${_iconsSvgDefault.default}#icon-arrow-right"></use>\n            </svg>\n        </button>`;
+        //--> Last Page
+        if (pageNum === currentPage && pageNum > 1) return `<button data-goto='${currentPage - 1}' class="btn--inline pagination__btn--prev">\n            <svg class="search__icon">\n              <use href="${_iconsSvgDefault.default}#icon-arrow-left"></use>\n            </svg>\n            <span>Page ${currentPage - 1}</span>\n        </button>`;
+        //--> Midle Pages
+        if (currentPage > 1 && pageNum > currentPage) return `\n        <button data-goto='${currentPage - 1}' class="btn--inline pagination__btn--prev">\n            <svg class="search__icon">\n              <use href="${_iconsSvgDefault.default}#icon-arrow-left"></use>\n            </svg>\n            <span>Page ${currentPage - 1}</span>\n        </button>\n\n        <button data-goto='${currentPage + 1}' class="btn--inline pagination__btn--next">\n            <span>Page ${currentPage + 1}</span>\n            <svg class="search__icon">\n              <use href="${_iconsSvgDefault.default}#icon-arrow-right"></use>\n            </svg>\n        </button>\n      `;
+        if (pageNum === currentPage) return '';
+    }
+}
+exports.default = new PaginationView();
