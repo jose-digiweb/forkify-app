@@ -1,0 +1,71 @@
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+//--> Importing Dependencies
+var _runtime = require("regenerator-runtime/runtime");
+var _stable = require("core-js/stable");
+//--> Importing Files and Modules
+var _model = require("./model");
+var _recipeViews = require("./views/recipeViews");
+var _recipeViewsDefault = parcelHelpers.interopDefault(_recipeViews);
+var _searchView = require("./views/searchView");
+var _searchViewDefault = parcelHelpers.interopDefault(_searchView);
+var _resultsView = require("./views/resultsView");
+var _resultsViewDefault = parcelHelpers.interopDefault(_resultsView);
+var _paginationView = require("./views/paginationView");
+var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
+const btnSearch = document.querySelector('.search__btn');
+// if (module.hot) {
+//   module.hot.accept();
+// }
+//--> Starting Coding <--\\
+const controlRecipes = async function() {
+    try {
+        const id = window.location.hash.slice(1);
+        if (!id) return;
+        //--> Update results view to mark the search result
+        _resultsViewDefault.default.update(_model.getSearchResultsPage());
+        //--> Rendering Spinner
+        _recipeViewsDefault.default.renderSpinner();
+        //--> Loading Recipe
+        await _model.loadRecipe(id);
+        // --> Rendering Data
+        _recipeViewsDefault.default.render(_model.state.recipe);
+    } catch (err) {
+        _recipeViewsDefault.default.renderError();
+    }
+};
+const controlSearchResults = async function() {
+    try {
+        //--> Rendering Spinner
+        _resultsViewDefault.default.renderSpinner();
+        const query = _searchViewDefault.default.getQuery();
+        await _model.loadSearchResult(query);
+        _resultsViewDefault.default.render(_model.state.search.results);
+        _resultsViewDefault.default.render(_model.getSearchResultsPage());
+        _paginationViewDefault.default.render(_model.state.search);
+    } catch (err) {
+        console.log(err);
+    }
+};
+const controlPagination = function(goToPage) {
+    _resultsViewDefault.default.render(_model.getSearchResultsPage(goToPage));
+    _paginationViewDefault.default.render(_model.state.search);
+};
+const controlServings = function(newServings) {
+    //-1-> Update the recipe servings (On State).
+    _model.updateServings(newServings);
+    //-2-> Update the Recipe View
+    // recipeView.render(model.state.recipe);
+    _recipeViewsDefault.default.update(_model.state.recipe);
+};
+const controlAddBookmark = function() {
+    _model.addBookmark(_model.state.recipe);
+    console.log(_model.state.recipe);
+};
+const init = function() {
+    _recipeViewsDefault.default.addHandlerRender(controlRecipes);
+    _recipeViewsDefault.default.addHandlerUpdateServing(controlServings);
+    _searchViewDefault.default.addHandlerSearch(controlSearchResults);
+    _paginationViewDefault.default.addHandlerClick(controlPagination);
+};
+init(); // https://forkify-api.herokuapp.com/v2
+ ///////////////////////////////////////

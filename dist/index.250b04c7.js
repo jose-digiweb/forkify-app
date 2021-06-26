@@ -395,6 +395,8 @@ var _resultsView = require("./views/resultsView");
 var _resultsViewDefault = parcelHelpers.interopDefault(_resultsView);
 var _paginationView = require("./views/paginationView");
 var _paginationViewDefault = parcelHelpers.interopDefault(_paginationView);
+var _view = require("./views/view");
+var _viewDefault = parcelHelpers.interopDefault(_view);
 const btnSearch = document.querySelector('.search__btn');
 // if (module.hot) {
 //   module.hot.accept();
@@ -440,16 +442,23 @@ const controlServings = function(newServings) {
     // recipeView.render(model.state.recipe);
     _recipeViewsDefault.default.update(_model.state.recipe);
 };
+const controlAddBookmark = function() {
+    if (!_model.state.recipe.bookmarked) _model.addBookmark(_model.state.recipe);
+    else _model.removeBookmark(_model.state.recipe.id);
+    console.log(_model.state.recipe);
+    _recipeViewsDefault.default.update(_model.state.recipe);
+};
 const init = function() {
     _recipeViewsDefault.default.addHandlerRender(controlRecipes);
     _recipeViewsDefault.default.addHandlerUpdateServing(controlServings);
+    _recipeViewsDefault.default.addHandlerAddBookmark(controlAddBookmark);
     _searchViewDefault.default.addHandlerSearch(controlSearchResults);
     _paginationViewDefault.default.addHandlerClick(controlPagination);
 };
 init(); // https://forkify-api.herokuapp.com/v2
  ///////////////////////////////////////
 
-},{"regenerator-runtime/runtime":"62Qib","core-js/stable":"1PFvP","./model":"1hp6y","./views/recipeViews":"6lPTE","./views/searchView":"3rYQ6","./views/resultsView":"17PYN","./views/paginationView":"5u5Fw","@parcel/transformer-js/src/esmodule-helpers.js":"367CR"}],"62Qib":[function(require,module,exports) {
+},{"regenerator-runtime/runtime":"62Qib","core-js/stable":"1PFvP","./model":"1hp6y","./views/recipeViews":"6lPTE","./views/searchView":"3rYQ6","./views/resultsView":"17PYN","./views/paginationView":"5u5Fw","@parcel/transformer-js/src/esmodule-helpers.js":"367CR","./views/view":"2fT4v"}],"62Qib":[function(require,module,exports) {
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
  *
@@ -12233,6 +12242,10 @@ parcelHelpers.export(exports, "getSearchResultsPage", ()=>getSearchResultsPage
 );
 parcelHelpers.export(exports, "updateServings", ()=>updateServings
 );
+parcelHelpers.export(exports, "addBookmark", ()=>addBookmark
+);
+parcelHelpers.export(exports, "removeBookmark", ()=>removeBookmark
+);
 //--> Importing Dependencies
 var _runtime = require("regenerator-runtime/runtime");
 var _stable = require("core-js/stable");
@@ -12249,7 +12262,8 @@ const state = {
         results: [],
         resultsPerPage: _config.RESULTS_PER_PAGE,
         resultsPage: 1
-    }
+    },
+    bookmarks: []
 };
 const loadRecipe = async function(id) {
     try {
@@ -12265,6 +12279,9 @@ const loadRecipe = async function(id) {
             url: recipe.source_url,
             title: recipe.title
         };
+        if (state.bookmarks.some((bookmark)=>bookmark.id === id
+        )) state.recipe.bookmarked = true;
+        else state.recipe.bookmarked = false;
     } catch (err) {
         console.error(err);
         throw err;
@@ -12300,6 +12317,19 @@ const updateServings = function(newServings) {
         eng.quantity = eng.quantity * newServings / state.recipe.servings;
     });
     state.recipe.servings = newServings;
+};
+const addBookmark = function(recipe) {
+    //--> Add Bookmark
+    state.bookmarks.push(recipe);
+    //--> Mark current recipe as Bookmarked
+    if (recipe.id === state.recipe.id) state.recipe.bookmarked = true;
+};
+const removeBookmark = function(id) {
+    const index = state.bookmarks.findIndex((el)=>el.id === id
+    );
+    state.bookmarks.splice(index, 1);
+    //--> Mark current recipe as Not Bookmarked
+    if (id === state.recipe.id) state.recipe.bookmarked = false;
 };
 
 },{"regenerator-runtime/runtime":"62Qib","core-js/stable":"1PFvP","./config":"6pr2F","./helper":"dSCNX","@parcel/transformer-js/src/esmodule-helpers.js":"367CR"}],"6pr2F":[function(require,module,exports) {
@@ -12408,8 +12438,15 @@ class RecipeView extends _viewDefault.default {
             if (updateTo > 0) handler(updateTo);
         });
     }
+    addHandlerAddBookmark(handler) {
+        this._parentEl.addEventListener('click', function(e) {
+            const btn = e.target.closest('.btn--bookmark');
+            if (!btn) return;
+            handler();
+        });
+    }
     _generateMarkup() {
-        return `\n        <figure class="recipe__fig">\n            <img src="${this._data.image}" alt="Tomato" class="recipe__img" />\n            <h1 class="recipe__title">\n              <span>${this._data.title}</span>\n            </h1>\n          </figure>\n\n          <div class="recipe__details">\n            <div class="recipe__info">\n              <svg class="recipe__info-icon">\n                <use href="${_iconsSvgDefault.default}#icon-clock"></use>\n              </svg>\n              <span class="recipe__info-data recipe__info-data--minutes">${this._data.cookingTime}</span>\n              <span class="recipe__info-text">minutes</span>\n            </div>\n            <div class="recipe__info">\n              <svg class="recipe__info-icon">\n                <use href="${_iconsSvgDefault.default}#icon-users"></use>\n              </svg>\n              <span class="recipe__info-data recipe__info-data--people">${this._data.servings}</span>\n              <span class="recipe__info-text">servings</span>\n\n              <div class="recipe__info-buttons">\n                <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings - 1}">\n                  <svg>\n                    <use href="${_iconsSvgDefault.default}#icon-minus-circle" </use>\n                  </svg>\n                </button>\n                <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings + 1}">\n                  <svg>\n                    <use href="${_iconsSvgDefault.default}#icon-plus-circle" ></use>\n                  </svg>\n                </button>\n              </div>\n            </div>\n\n            <div class="recipe__user-generated">\n              <svg>\n                <use href="${_iconsSvgDefault.default}#icon-user"></use>\n              </svg>\n            </div>\n            <button class="btn--round">\n              <svg class="">\n                <use href="${_iconsSvgDefault.default}#icon-bookmark-fill"></use>\n              </svg>\n            </button>\n          </div>\n\n          <div class="recipe__ingredients">\n            <h2 class="heading--2">Recipe ingredients</h2>\n            <ul class="recipe__ingredient-list">\n            ${this._data.ingredients.map((ing)=>{
+        return `\n        <figure class="recipe__fig">\n            <img src="${this._data.image}" alt="Tomato" class="recipe__img" />\n            <h1 class="recipe__title">\n              <span>${this._data.title}</span>\n            </h1>\n          </figure>\n\n          <div class="recipe__details">\n            <div class="recipe__info">\n              <svg class="recipe__info-icon">\n                <use href="${_iconsSvgDefault.default}#icon-clock"></use>\n              </svg>\n              <span class="recipe__info-data recipe__info-data--minutes">${this._data.cookingTime}</span>\n              <span class="recipe__info-text">minutes</span>\n            </div>\n            <div class="recipe__info">\n              <svg class="recipe__info-icon">\n                <use href="${_iconsSvgDefault.default}#icon-users"></use>\n              </svg>\n              <span class="recipe__info-data recipe__info-data--people">${this._data.servings}</span>\n              <span class="recipe__info-text">servings</span>\n\n              <div class="recipe__info-buttons">\n                <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings - 1}">\n                  <svg>\n                    <use href="${_iconsSvgDefault.default}#icon-minus-circle" </use>\n                  </svg>\n                </button>\n                <button class="btn--tiny btn--update-servings" data-update-to="${this._data.servings + 1}">\n                  <svg>\n                    <use href="${_iconsSvgDefault.default}#icon-plus-circle" ></use>\n                  </svg>\n                </button>\n              </div>\n            </div>\n\n            <div class="recipe__user-generated">\n              <svg>\n                <use href="${_iconsSvgDefault.default}#icon-user"></use>\n              </svg>\n            </div>\n            <button class="btn--round btn--bookmark">\n              <svg class="">\n                <use href="${_iconsSvgDefault.default}#icon-bookmark${this._data.bookmarked ? '-fill' : ''}"></use>\n              </svg>\n            </button>\n          </div>\n\n          <div class="recipe__ingredients">\n            <h2 class="heading--2">Recipe ingredients</h2>\n            <ul class="recipe__ingredient-list">\n            ${this._data.ingredients.map((ing)=>{
             return `\n                <li class="recipe__ingredient">\n                <svg class="recipe__icon">\n                  <use href="${_iconsSvgDefault.default}#icon-check"></use>\n                </svg>\n                <div class="recipe__quantity">${ing.quantity ? new _fractional.Fraction(ing.quantity).toString() : ''}</div>\n                <div class="recipe__description">\n                  <span class="recipe__unit">${ing.unit}</span>\n                  ${ing.description}\n                </div>\n              </li>\n              `;
         }).join('')}\n            </ul>\n          </div>\n\n          <div class="recipe__directions">\n            <h2 class="heading--2">How to cook it</h2>\n            <p class="recipe__directions-text">\n              This recipe was carefully designed and tested by\n              <span class="recipe__publisher">${this._data.publisher}</span>. Please check out\n              directions at their website.\n            </p>\n            <a\n              class="btn--small recipe__btn"\n              hthis._data.recipe.url"\n              target="_blank"\n            >\n              <span>Directions</span>\n              <svg class="search__icon">\n                <use href="${_iconsSvgDefault.default}#icon-arrow-right"></use>\n              </svg>\n            </a>\n          </div>\n      `;
     }
@@ -12440,7 +12477,7 @@ class View {
         newElements.forEach((el, i)=>{
             const curEl = currentElements[i];
             //--> Updates changed text
-            if (!el.isEqualNode(curEl) && el.firstChild.nodeValue.trim() !== '') curEl.textContent = el.textContent;
+            if (!el.isEqualNode(curEl) && el.firstChild?.nodeValue.trim() !== '') curEl.textContent = el.textContent;
             //--> Update changed attributes
             if (!el.isEqualNode(curEl)) Array.from(el.attributes).forEach((attr)=>{
                 curEl.setAttribute(attr.name, attr.value);
